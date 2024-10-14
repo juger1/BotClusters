@@ -3,7 +3,7 @@
         "source": "https://github.com/juger1/content.git",
         "branch": "Hentai",
         "env": {
-            "TG_BOT_TOKEN": ""
+            "TG_BOT_TOKEN": "6737569405:AAHwpHE4G_DTwP0vmFYdS1j9pU8DgOpF2ao"
         },
         "run": "main.py"
     },
@@ -11,7 +11,7 @@
         "source": "https://github.com/juger1/content.git",
         "branch": "main",
         "env": {
-            "TG_BOT_TOKEN": ""
+            "TG_BOT_TOKEN": "6341809781:AAGyxkWGgStpbb7bMhVDmJF1dTWuwWF6PCg"
         },
         "run": "main.py"
     },
@@ -19,7 +19,7 @@
         "source": "https://github.com/juger1/content.git",
         "branch": "Master",
         "env": {
-            "TG_BOT_TOKEN": ""
+            "TG_BOT_TOKEN": "7227898838:AAE09d00tLDqS2_QbykRIz8LRi8NSwtL3F4"
         },
         "run": "main.py"
     }
