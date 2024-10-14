@@ -1,5 +1,6 @@
 flask
 requests
 python-dotenv
+virtualenv
 Werkzeug==2.2.2  
 
