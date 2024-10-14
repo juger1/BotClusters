@@ -5,7 +5,7 @@
         "env": {
             "TG_BOT_TOKEN": ""
         },
-        "run": main.py"
+        "run": "main.py"
     },
     "bot2": {
         "source": "https://github.com/juger1/content.git",
