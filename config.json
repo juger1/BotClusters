@@ -1,10 +1,18 @@
 {   
-    "bot1": {
+    "BOT 1️⃣": {
         "source": "https://github.com/juger1/adlinkfly-telegram-bot.git",
         "branch": "main",
         "env": {
             "BPT_TOKEN": "7083722060:AAEp1Ec33BYPaHiVNZsTZWoe3U251JtuXsA"
         },
         "run": "main.py"
-    }
+    },
+    "BOT 2️⃣": {
+        "source": "https://github.com/juger1/File-Sharing-Telegram-bot.git",
+        "branch": "juger1-patch-1",
+        "env": {
+            "BPT_TOKEN": "7288528064:AAE8CFN268-DFirMUYngqgRSc85WULDqpMo"
+        },
+        "run": "main.py"
+    }   
 }
