@@ -1,18 +1,26 @@
 {   
-    "BOT 1️⃣": {
-        "source": "https://github.com/juger1/adlinkfly-telegram-bot.git",
-        "branch": "main",
+    "BOT-1": {
+        "source": "https://github.com/juger1/NewFile.git",
+        "branch": "Elixir-1",
         "env": {
-            "BPT_TOKEN": "7083722060:AAEp1Ec33BYPaHiVNZsTZWoe3U251JtuXsA"
+            "ENV_NAME": "ENV_VALUE"
         },
         "run": "main.py"
     },
-    "BOT 2️⃣": {
-        "source": "https://github.com/juger1/File-Sharing-Telegram-bot.git",
-        "branch": "juger1-patch-1",
+    "BOT-2": {
+        "source": "https://github.com/juger1/NewFile.git",
+        "branch": "Elixir-2",
         "env": {
-            "BPT_TOKEN": "7288528064:AAE8CFN268-DFirMUYngqgRSc85WULDqpMo"
+            "ENV_NAME": "ENV_VALUE"
         },
         "run": "main.py"
-    }   
+    },
+    "BOT-3": {
+        "source": "https://github.com/juger1/NewFile.git",
+        "branch": "Hentai",
+        "env": {
+            "ENV_NAME": "ENV_VALUE"
+        },
+        "run": "main.py"
+    }
 }
