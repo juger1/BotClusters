@@ -1,6 +1,6 @@
 {   
     "BOT-1": {
-        "source": "https://github.com/juger1/NewFile.git",
+        "source": "https://github.com/juger1/File-New.git",
         "branch": "Elixir-1",
         "env": {
             "ENV_NAME": "ENV_VALUE"
@@ -8,16 +8,8 @@
         "run": "main.py"
     },
     "BOT-2": {
-        "source": "https://github.com/juger1/NewFile.git",
+        "source": "https://github.com/juger1/File-New.git",
         "branch": "Elixir-2",
-        "env": {
-            "ENV_NAME": "ENV_VALUE"
-        },
-        "run": "main.py"
-    },
-    "BOT-3": {
-        "source": "https://github.com/juger1/NewFile.git",
-        "branch": "Hentai",
         "env": {
             "ENV_NAME": "ENV_VALUE"
         },
