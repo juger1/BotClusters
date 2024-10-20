@@ -3,30 +3,25 @@ import subprocess
 import json
 import time
 import logging
+import signal
+from concurrent.futures import ThreadPoolExecutor
 import shutil
 import random
+import socket
 from pathlib import Path
 from phrase import WORD_LIST
 from logging.handlers import RotatingFileHandler
-from concurrent.futures import ThreadPoolExecutor
-import signal
 
-# Set up logging
 LOG_FILE = 'bot_manager.log'
-handler = RotatingFileHandler(LOG_FILE, maxBytes=5 * 1024 * 1024, backupCount=3)  # 5 MB log size
+handler = RotatingFileHandler(LOG_FILE, maxBytes=5 * 1024 * 1024, backupCount=3)  # 5 MB limit
 logging.basicConfig(handlers=[handler], level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-# Log directory for storing individual bot logs
-logs_dir = Path('/app/logs')
-if not logs_dir.exists():
-    logs_dir.mkdir(parents=True, exist_ok=True)
 
 def generate_prefix():
     word1 = random.choice(WORD_LIST)
     word2 = random.choice(WORD_LIST)
     prefix = f"{word1} {word2}"
     logging.info(f'Generated prefix: {prefix}')
-    return prefix
+    return prefix 
 
 def load_config(file_path):
     logging.info(f'Loading configuration from {file_path}')
@@ -35,7 +30,7 @@ def load_config(file_path):
 
     new_bots = {}
     for bot_name, bot_config in bots.items():
-        prefix = generate_prefix()
+        prefix = generate_prefix() 
         prefixed_bot_name = f"{prefix} {bot_name}"
 
         if not all(key in bot_config for key in ['source', 'run', 'env']):
@@ -50,10 +45,33 @@ def load_config(file_path):
         logging.info(f'Loaded configuration for {prefixed_bot_name}')
 
     logging.info('Configuration loading complete.')
-    return new_bots
+    return new_bots  
 
 bots = load_config("config.json")
 bot_processes = {}
+tmux_sessions = {}
+
+def create_tmux_session(session_name):
+    logging.info(f'Creating tmux session: {session_name}')
+    subprocess.run(['tmux', 'new-session', '-d', '-s', session_name])
+    logging.info(f'Tmux session "{session_name}" created successfully.')
+
+def attach_tmux_session(session_name):
+    logging.info(f'Attaching to tmux session: {session_name}')
+    subprocess.run(['tmux', 'attach-session', '-t', session_name])
+    logging.info(f'Attached to tmux session "{session_name}".')
+
+def kill_tmux_session(session_name):
+    logging.info(f'Killing tmux session: {session_name}')
+    subprocess.run(['tmux', 'kill-session', '-t', session_name])
+    logging.info(f'Tmux session "{session_name}" killed.')
+
+def manage_tmux_session(bot_name):
+    session_name = f"{random.randint(100, 999)}_{bot_name.replace(' ', '_')}"
+    create_tmux_session(session_name)
+    tmux_sessions[bot_name] = session_name
+    logging.info(f'Managed tmux session for bot "{bot_name}": {session_name}')
+    return session_name
 
 def start_bot(bot_name, bot_config):
     logging.info(f'Starting bot: {bot_name}')
@@ -61,13 +79,12 @@ def start_bot(bot_name, bot_config):
 
     bot_env = os.environ.copy()
 
-    # Set environment variables for the bot
     for env_name, env_value in bot_config['env'].items():
         if env_value is not None:
             bot_env[env_name] = str(env_value)
             logging.info(f'Setting environment variable {env_name} for {bot_name}.')
 
-    bot_dir = Path('/app') / bot_name.replace(" ", "_")
+    bot_dir = Path('/app') / bot_name.replace(" ", "_") 
     requirements_file = bot_dir / 'requirements.txt'
     bot_file = bot_dir / bot_config['run']
     branch = bot_config.get('branch', 'main')
@@ -88,24 +105,26 @@ def start_bot(bot_name, bot_config):
             logging.error(f"Error while cloning {bot_name}: {result.stderr}")
             return None
 
-        # Install requirements if the file exists
-        if requirements_file.exists():
-            logging.info(f'Installing requirements for {bot_name}')
-            subprocess.run(['pip', 'install', '--no-cache-dir', '-r', str(requirements_file)], check=True)
+        logging.info(f'Installing requirements for {bot_name}')
+        subprocess.run(['pip', 'install', '--no-cache-dir', '-r', str(requirements_file)], check=True)
 
-        # Log file for each bot (can also use stdout for Koyeb logging)
-        log_file = f'/app/logs/{bot_name}.log'
-        with open(log_file, 'w') as lf:
-            if bot_file.suffix == '.sh':
-                logging.info(f'Starting {bot_name} bot with bash script: {bot_file}')
-                subprocess.run(['bash', str(bot_file)], cwd=bot_dir, env=bot_env, stdout=lf, stderr=lf)
-            else:
-                logging.info(f'Starting {bot_name} bot with Python script: {bot_file}')
-                subprocess.run(['python3', str(bot_file)], cwd=bot_dir, env=bot_env, stdout=lf, stderr=lf)
+        session_name = manage_tmux_session(bot_name)
 
-        logging.info(f'{bot_name} started successfully. Logs can be found in {log_file}')
-        return log_file
+        env_export_cmds = ' '.join([f'export {key}="{value}"' for key, value in bot_env.items()])
 
+        if bot_file.suffix == '.sh':
+            logging.info(f'Starting {bot_name} bot with bash script: {bot_file}')
+            subprocess.run(['tmux', 'send-keys', '-t', session_name, f'cd {bot_dir}', 'C-m'])
+            subprocess.run(['tmux', 'send-keys', '-t', session_name, env_export_cmds, 'C-m'])
+            subprocess.run(['tmux', 'send-keys', '-t', session_name, f'bash {bot_file}', 'C-m'])
+        else:
+            logging.info(f'Starting {bot_name} bot with Python script: {bot_file}')
+            subprocess.run(['tmux', 'send-keys', '-t', session_name, f'cd {bot_dir}', 'C-m'])
+            subprocess.run(['tmux', 'send-keys', '-t', session_name, env_export_cmds, 'C-m'])
+            subprocess.run(['tmux', 'send-keys', '-t', session_name, f'python3 {bot_file}', 'C-m'])
+    
+        logging.info(f'{bot_name} started successfully.')
+        return session_name
     except subprocess.CalledProcessError as e:
         logging.error(f"Error while processing {bot_name}: {e}")
         return None
@@ -119,28 +138,61 @@ def stop_bot(bot_name):
     if bot_process:
         try:
             bot_process.terminate()
-            bot_process.wait(timeout=5)
+            bot_process.wait(timeout=5) 
             logging.info(f'Bot {bot_name} stopped successfully.')
         except subprocess.TimeoutExpired:
             logging.warning(f'Bot {bot_name} did not terminate in time; force killing...')
             bot_process.kill()
+        finally:
+            kill_tmux_session(tmux_sessions.get(bot_name)) 
     else:
         logging.warning(f'No running process found for bot: {bot_name}')
+
+def cleanup_tmux_sessions():
+    logging.info('Cleaning up tmux sessions...')
+    result = subprocess.run(['tmux', 'ls'], capture_output=True, text=True)
+    if result.returncode == 0:
+        for session in result.stdout.splitlines():
+            session_name = session.split(':')[0]
+            if session_name not in tmux_sessions.values():
+                kill_tmux_session(session_name)
+    logging.info('Tmux session cleanup complete.')
 
 def signal_handler(sig, frame):
     logging.info('Shutting down...')
     for bot_name in list(bot_processes.keys()):
         stop_bot(bot_name)
-    logging.info('All bots stopped.')
+    logging.info('All bots and tmux sessions stopped.')
     exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 
+def tail_log_file(log_file='bot_manager.log'):
+    try:
+        with open(log_file, 'r') as file:
+            # Move the cursor to the end of the file
+            file.seek(0, os.SEEK_END)
+            while True:
+                line = file.readline()
+                if line:
+                    print(line, end='')  # Print each new line
+                else:
+                    time.sleep(1)  # Wait for new logs to be written
+    except FileNotFoundError:
+        print(f"Log file {log_file} not found.")
+
+def print_log_file(log_file='bot_manager.log'):
+    try:
+        with open(log_file, 'r') as file:
+            content = file.read()
+            print(content)
+    except FileNotFoundError:
+        print(f"Log file {log_file} not found.")
+
 def main():
     logging.info('Starting bot manager...')
-
-    # Run each bot in its own thread
+    cleanup_tmux_sessions()  
     with ThreadPoolExecutor(max_workers=len(bots)) as executor:
         futures = {executor.submit(start_bot, name, config): name for name, config in bots.items()}
 
@@ -154,3 +206,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # Uncomment the following line to tail the log file in real-time
+    # tail_log_file()
+    # Uncomment the following line to print the entire log file
+    # print_log_file()
