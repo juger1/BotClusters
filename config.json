@@ -1,18 +1,18 @@
 {   
     "BOT-1": {
-        "source": "https://github.com/juger1/File-New.git",
-        "branch": "Elixir-1",
+        "source": "https://github.com/juger1/WZML-.git",
+        "branch": "master",
         "env": {
             "ENV_NAME": "ENV_VALUE"
         },
-        "run": "main.py"
+        "run": "start.sh"
     },
     "BOT-2": {
-        "source": "https://github.com/juger1/File-New.git",
-        "branch": "Elixir-2",
+        "source": "https://github.com/nero-bc/jrmerge-bot.git",
+        "branch": "JR",
         "env": {
-            "ENV_NAME": "ENV_VALUE"
+            "CONFIG_FILE_URL": "https://gist.githubusercontent.com/nero-bc/7202a969c1d380358af09f116fdadfb3/raw/tgmerge.env"
         },
-        "run": "main.py"
+        "run": "start.sh"
     }
 }
