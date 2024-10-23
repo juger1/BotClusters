@@ -20,7 +20,10 @@ RUN apt-get update && apt-get install -y python3-venv \
 # Copy the rest of the application code to the container
 COPY . .
 
-# Ensure any shell scripts are executable
+# Copy the start.sh script to the /usr/local/bin/ directory
+COPY start.sh /usr/local/bin/start.sh
+
+# Ensure shell scripts are executable
 RUN chmod +x run.sh /usr/local/bin/start.sh
 
 # Create a non-root user to avoid permission issues
