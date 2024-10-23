@@ -22,7 +22,11 @@ RUN chmod +x run.sh /usr/local/bin/start.sh
 
 RUN useradd -m botuser
 
+# Change ownership of the /app directory to botuser
 RUN chown -R botuser:botuser /app
+
+# Add the local bin to PATH for botuser
+ENV PATH="/home/botuser/.local/bin:${PATH}"
 
 USER botuser
 
