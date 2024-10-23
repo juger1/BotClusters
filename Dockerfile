@@ -4,7 +4,9 @@ WORKDIR /app
 
 COPY requirements.txt ./
 
+# Upgrade system pip first, then create the virtual environment and upgrade pip in it as well
 RUN apt-get update && apt-get install -y python3-venv \
+    && pip install --upgrade pip \
     && python3 -m venv venv \
     && . venv/bin/activate \
     && pip install --upgrade pip \
