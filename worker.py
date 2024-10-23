@@ -94,8 +94,9 @@ def start_bot(bot_name, bot_config):
             logging.info(f'Creating directory for {bot_name}: {bot_dir}')
             bot_dir.mkdir(parents=True, exist_ok=True)
 
-        logging.info(f'Removing existing directory: {bot_dir}')
-        shutil.rmtree(bot_dir)
+        if bot_dir.exists():
+            logging.info(f'Removing existing directory: {bot_dir}')
+            shutil.rmtree(bot_dir)
 
         logging.info(f'Cloning {bot_name} from {bot_config["source"]} (branch: {branch})')
         result = subprocess.run(['git', 'clone', '-b', branch, '--single-branch', bot_config['source'], str(bot_dir)], check=False, capture_output=True, text=True)
@@ -169,13 +170,15 @@ signal.signal(signal.SIGTERM, signal_handler)
 
 def main():
     logging.info('Starting bot manager...')
+    logging.info(f'Bots to be managed: {list(bots.keys())}')
     cleanup_tmux_sessions()  
     with ThreadPoolExecutor(max_workers=len(bots)) as executor:
         futures = {executor.submit(start_bot, name, config): name for name, config in bots.items()}
 
         for future in futures:
             try:
-                future.result()
+                result = future.result()  # Get result to trigger exceptions
+                logging.info(f'Bot completed execution: {futures[future]}')
             except Exception as e:
                 logging.error(f'Error in executing bot: {e}')
 
