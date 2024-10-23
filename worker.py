@@ -10,11 +10,10 @@ import random
 import socket
 from pathlib import Path
 from phrase import WORD_LIST
-from logging.handlers import RotatingFileHandler
 
-LOG_FILE = 'bot_manager.log'
-handler = RotatingFileHandler(LOG_FILE, maxBytes=5 * 1024 * 1024, backupCount=3)  # 5 MB limit
-logging.basicConfig(handlers=[handler], level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Configure logging to output to console
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 def generate_prefix():
     word1 = random.choice(WORD_LIST)
@@ -106,7 +105,7 @@ def start_bot(bot_name, bot_config):
             return None
 
         logging.info(f'Installing requirements for {bot_name}')
-        subprocess.run(['pip', 'install', '--no-cache-dir', '-r', str(requirements_file)], check=True)  # Ensure correct path
+        subprocess.run(['pip', 'install', '--no-cache-dir', '-r', str(requirements_file)], check=True)
 
         session_name = manage_tmux_session(bot_name)
 
@@ -122,7 +121,7 @@ def start_bot(bot_name, bot_config):
             subprocess.run(['tmux', 'send-keys', '-t', session_name, f'cd {bot_dir}', 'C-m'])
             subprocess.run(['tmux', 'send-keys', '-t', session_name, env_export_cmds, 'C-m'])
             subprocess.run(['tmux', 'send-keys', '-t', session_name, f'python3 {bot_file}', 'C-m'])
-    
+
         logging.info(f'{bot_name} started successfully.')
         return session_name
     except subprocess.CalledProcessError as e:
@@ -170,15 +169,13 @@ signal.signal(signal.SIGTERM, signal_handler)
 
 def main():
     logging.info('Starting bot manager...')
-    logging.info(f'Bots to be managed: {list(bots.keys())}')
     cleanup_tmux_sessions()  
     with ThreadPoolExecutor(max_workers=len(bots)) as executor:
         futures = {executor.submit(start_bot, name, config): name for name, config in bots.items()}
 
         for future in futures:
             try:
-                result = future.result()  # Get result to trigger exceptions
-                logging.info(f'Bot completed execution: {futures[future]}')
+                future.result()
             except Exception as e:
                 logging.error(f'Error in executing bot: {e}')
 
