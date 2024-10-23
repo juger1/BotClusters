@@ -94,9 +94,8 @@ def start_bot(bot_name, bot_config):
             logging.info(f'Creating directory for {bot_name}: {bot_dir}')
             bot_dir.mkdir(parents=True, exist_ok=True)
 
-        if bot_dir.exists():
-            logging.info(f'Removing existing directory: {bot_dir}')
-            shutil.rmtree(bot_dir)
+        logging.info(f'Removing existing directory: {bot_dir}')
+        shutil.rmtree(bot_dir)
 
         logging.info(f'Cloning {bot_name} from {bot_config["source"]} (branch: {branch})')
         result = subprocess.run(['git', 'clone', '-b', branch, '--single-branch', bot_config['source'], str(bot_dir)], check=False, capture_output=True, text=True)
@@ -184,4 +183,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
