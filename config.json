@@ -14,5 +14,13 @@
             "TOKEN": "Elixir2"
         },
         "run": "main.py"
+    },
+    "bot3": {
+        "source": "https://github.com/juger1/File-New.git",
+        "branch": "Elixir-1",
+        "env": {
+            "TOKEN": "Elixir1"
+        },
+        "run": "main.py"
     }
 }
